@@ -82,17 +82,11 @@ class Window(QtWidgets.QMainWindow, QtWidgets.QDialog):
         self.dialog3 = SRS_Window(self)     #Define dialog Window for SRS options
 #        self.dialog4 = SplPlot_Window(self)    #Define dialog Window for SPL  options
 #        self.dialog5 = VrsPlot_Window(self)    #Define dialog Window for VRS options
+#        self.dialog6 = FFTMap_Window(self)     Define FFT Map for given data set
+#        self.dialog7 = WaterFall_Window(self)   Define a waterfall plot per Time History
 
-#    def initial_params(self):
-       
-#        sr = self.sr
-#        bw=5.0
-#        npseg=round(sr/bw);
-#        self.npseg = npseg
-#        freq=np.arange(0,6000,5)  # Define 5hz frequency vector
-#        freq=freq.T
-#        self.freq = freq
-#
+
+
     def dcon(self, event):
         DC.on(callbacks=True, reset=False)
         self.pause_on = False
@@ -165,7 +159,7 @@ class Window(QtWidgets.QMainWindow, QtWidgets.QDialog):
     def about(self):
         QtWidgets.QMessageBox.about(self, "Dynamics Flight Data Interface", """ Matplotlib interface for PSD, FdePSD,  SRS, SPL and VRS using Matplotlib Backends for NavigationToolbar 
 and Canvas Window to display & interact with plot .  Select Dropdown
-Menu for Falcon9 Matlab or Multi-File data.  Plot PSD or FdePSD
+Menu for Falcon9 Matlab or Multi-File data.  Plot PSD, FdePSD, SRS, SPL or VRS
 for particular data set""")
 
     def fileOpenF9Borg_Multi(self):
@@ -343,7 +337,7 @@ for particular data set""")
         TotalLiftoffTimeLabel = QLabel("   Total Liftoff Time (sec):  :")
         plotwidget.TotalLiftoffTimeLabel = QLabel()  
           
-        # set the layout
+# set the layout
         layout1 = QtWidgets.QVBoxLayout()
         layout2 = QtWidgets.QHBoxLayout()
         layout3 = QtWidgets.QHBoxLayout()
@@ -415,11 +409,8 @@ for particular data set""")
 
         layout8.addWidget(TotalLiftoffTimeLabel)
         layout8.addWidget(plotwidget.TotalLiftoffTimeLabel)
-#        layout9.addWidget(plotwidget.TotalLiftoffTimeSpinBox)
 
         self.updateUi5()
-
-#
         plotwidget.setLayout(layout1)
 
         # Connect Signal & Slots to User interface
@@ -433,11 +424,9 @@ for particular data set""")
         plotwidget.liftoffTimeHoursSpinBox.valueChanged.connect(self.updateUi5)
         plotwidget.liftoffTimeMinutesSpinBox.valueChanged.connect(self.updateUi5)
         plotwidget.liftoffTimeSecondsSpinBox.valueChanged.connect(self.updateUi5)
-
-#    
+   
         self.updateUi1()
         self.updateUi2()
-#
 
     def updateUi1(self):
         """Spin Box  Function"""
@@ -670,8 +659,7 @@ class AccelTime_Window(QtWidgets.QMainWindow):
         sw = self.parent
         self.sw = sw
         self.sw1 = sw1
-
-        
+     
         sr = sw.sr
         print('Accel_Time Window SR =', sr)
         
@@ -686,6 +674,8 @@ class AccelTime_Window(QtWidgets.QMainWindow):
         self.ftime = "True"
         self.octn = "True"
         self.ftime = "True"
+
+        self.winends = ['none', 'front', 'back', 'both']
 
         self.main_widget = QWidget(self)
         self.main_layout = QVBoxLayout(self.main_widget)
@@ -792,6 +782,14 @@ class AccelTime_Window(QtWidgets.QMainWindow):
         self.SpinBox9.valueChanged.connect(self.spinState9)  
         self.main_layout.addWidget(self.SpinBox9)
 
+        self.winendsLabel = QLabel("WindowEnds Function")
+        self.main_layout.addWidget(self.winendsLabel)
+        self.windendsComboBox = QComboBox()
+        self.windendsComboBox.addItem("none")
+        self.windendsComboBox.addItems(["{}".format(self.winends[x]) for x in range(1,4)])
+        self.windends = self.windendsComboBox.currentIndex()
+        self.windendsComboBox.currentIndexChanged.connect(self.comboState10)
+        self.main_layout.addWidget(self.windendsComboBox) 
 
         self.setCentralWidget(self.main_widget)
         self.dialog = QMainWindow(self)     # Define "parent=self" for handle in QMainWindow Class
@@ -811,6 +809,7 @@ class AccelTime_Window(QtWidgets.QMainWindow):
         self.bfval = bfval
         octval = self.SpinBox9.value()
         self.octval = octval
+        
               
 # Define Check Boxes from Accel_Time Function:
         dels   = self.checkBox1.isChecked()
@@ -862,6 +861,7 @@ class AccelTime_Window(QtWidgets.QMainWindow):
         octn = self.checkBox8.isChecked()
         ftime = self.checkBox10.isChecked()   
         bvalue = self.SpinBox8.value()     # Define value of Butterworth filter
+        windends = self.windendsComboBox.currentText()
 
         print('Detrend value is:', detrendData)
         if detrendData is True:            # Check to Detrend Data
@@ -871,11 +871,8 @@ class AccelTime_Window(QtWidgets.QMainWindow):
         if detrendData is False:
             value_y = sw.value_y
 
-        print('Fixtime value is', ftime)
-  
-
         if ftime:                  # Check to apply Fixtime to Data
-            print('inside ftime loop, ftime = True')
+#            print('inside ftime loop, ftime = True')
             newdata = dsp.fixtime(Data1,sw.sr,delspikes=dels, deldrops=deld, delouttimes=delot)
             x = newdata[1]
             time_x = newdata[0]         
@@ -884,8 +881,8 @@ class AccelTime_Window(QtWidgets.QMainWindow):
             self.value_y = value_y
             
         if not ftime:
-            print('value of ftime is', ftime)
-            print('inside ftime loop, ftime = False')
+#            print('value of ftime is', ftime)
+#            print('inside ftime loop, ftime = False')
             Data1 = [time_x, value_y]
             time_x = time_x
             self.time_x = time_x
@@ -894,9 +891,7 @@ class AccelTime_Window(QtWidgets.QMainWindow):
 
         if hpfilt:
             hphz = hpfiltval		# Define high pass filter 
-            print('high pass filter value =', hpfiltval)
             [c,d]=signal.butter(bvalue, [hphz/(sw.sr/2)], 'high')
-            print('bvalue & hphz/(sw.sr/2)', bvalue,  hphz/(sw.sr/2))
             d2=signal.filtfilt(c,d,x);     # filter out ridgid body
             if detrendData: 
                 d2 = signal.detrend(d2, type='linear')
@@ -928,6 +923,13 @@ class AccelTime_Window(QtWidgets.QMainWindow):
             self.value_y = d2
             print("Using a band pass filter",   bp1hz,  bp2hz)
             self.bpfilt = "False"
+
+
+        if windends:
+            d2 = dsp.windowends(Data1[1], portion=0.01, ends=windends, axis=-1)
+            value_y = d2
+            self.value_y = d2
+            print('using Window Ends function value :', self.windendsComboBox.currentText())
 
     
     def btnstate1(self,checkBox1):
@@ -1039,6 +1041,11 @@ class AccelTime_Window(QtWidgets.QMainWindow):
     def spinState9(self):
         print("1/oct Number")
         print(self.SpinBox9.value())
+
+    def comboState10(self):
+        print("Windows ends state selected :")
+        print(self.windendsComboBox.value())
+
 
 class PsdPlot_Window(AccelTime_Window):
 
@@ -1158,6 +1165,7 @@ class FdePsdPlot_Window(AccelTime_Window):
         self.rolloff = ['lanczos', 'fft', 'prefilter', 'linear', 'none', 'None']
         self.parallel = ['auto', 'no', 'yes']
         self.verbose = ['False', 'True']
+        
 
         self.main_sublayout1 = QHBoxLayout()
         self.main_sublayout2 = QHBoxLayout()
@@ -1524,9 +1532,9 @@ class SRS_Window(AccelTime_Window):
         print("I reached this point")       
         print("Start the PSD Plot process") 
         self.accelcalcs()          # Run accel-time calculations              
-        from SRS_Rev3 import QMainWindow
-        self.qmw = QMainWindow(self)
-        self.qmw.Start_Plot_SRS()
+        from SRS_Rev3 import QMainWindow   # Load SRS module and Import main window
+        self.qmw = QMainWindow(self)      # Set handle to QMainWindow Class
+        self.qmw.Start_Plot_SRS()       # Start Method Start_Plot_SRS within QMainWindow 
 
 
         
