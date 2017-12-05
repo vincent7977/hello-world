@@ -926,7 +926,7 @@ class AccelTime_Window(QtWidgets.QMainWindow):
 
 
         if windends:
-            d2 = dsp.windowends(Data1[1], portion=0.01, ends=windends, axis=-1)
+            d2 = dsp.windowends(Data1, portion=0.01, ends=windends)
             value_y = d2
             self.value_y = d2
             print('using Window Ends function value :', self.windendsComboBox.currentText())
